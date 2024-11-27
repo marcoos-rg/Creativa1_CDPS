@@ -19,7 +19,7 @@ bridges = {
 network = {
           "c1":["10.1.1.2", "10.1.1.1"],
           "s1":["10.1.2.11", "10.1.2.1"],
-          "s2":["10.1.2.12", "10.1.2.1"], 
+          "s2":["10.1.2.12", "10.1.2.1"],
           "s3":["10.1.2.13", "10.1.2.1"],
           "s4":["10.1.2.14", "10.1.2.1"],
           "s5":["10.1.2.15", "10.1.2.1"]
@@ -27,40 +27,52 @@ network = {
 
 
 def editXml(vm):
+    cwd = os.getcwd()
+    path = cwd + "/" + vm
 
-  cwd = os.getcwd()
-  path = cwd + "/" + vm
+    # Cargar el XML de la máquina virtual
+    tree = etree.parse(path + ".xml")
+    root = tree.getroot()
 
-  tree = etree.parse(path + ".xml")
+    # Modificar el nombre de la máquina
+    name = root.find("name")
+    name.text = vm
 
-  root = tree.getroot()
+    # Modificar la fuente del archivo de disco
+    sourceFile = root.find("./devices/disk/source")
+    sourceFile.set("file", path + ".qcow2")
 
-  name = root.find("name")
-  name.text = vm
+    # Modificar la primera interfaz de red
+    interface = root.find("./devices/interface")
+    interface.set("type", "bridge")
+    source = interface.find("source")
+    source.set("bridge", bridges[vm][0])
 
-  sourceFile = root.find("./devices/disk/source")
-  sourceFile.set("file", path + ".qcow2")
+    # Añadir el campo <virtualport type='openvswitch'/> a la primera interfaz
+    virtualport = etree.SubElement(interface, "virtualport")
+    virtualport.set("type", "openvswitch")
 
-  bridge = root.find("./devices/interface/source")
-  bridge.set("bridge", bridges[vm][0])
+    # Si la máquina es "lb", añadir una segunda interfaz para LAN2
+    if vm == "lb":
+        # Crear una nueva interfaz para LAN2
+        second_interface = etree.Element("interface", type="bridge")
+        source2 = etree.SubElement(second_interface, "source")
+        source2.set("bridge", "LAN2")
 
-  fout = open(path + ".xml", "w")
-  fout.write(etree.tounicode(tree, pretty_print = True))
-  fout.close()
-  if vm == "lb":
-    fin = open(path + ".xml",'r')   #fin es el XML correspondiente a lb, en modo solo lectura
-    fout = open("tmp.xml",'w')  #fout es un XML temporal abierto en modo escritura
-    for line in fin:
-      if "</interface>" in line:
-        fout.write("</interface>\n <interface type='bridge'>\n <source bridge='"+"LAN2"+"'/>\n <model type='virtio'/>\n </interface>\n")
-      #si el XML de lb contiene un interface (que lo va a contener, ya que previamente se le habrá añadido el bridge LAN1), se le añade al XML temporal otro bridge: LAN2
-      else:
-        fout.write(line)
-    fin.close()
-    fout.close()
+        # Modelo de la segunda interfaz
+        model2 = etree.SubElement(second_interface, "model")
+        model2.set("type", "virtio")
 
-    call(["cp","./tmp.xml", path + ".xml"])  #sustituimos es XML por el temporal, que es el que contiene las dos LAN
-    call(["rm", "-f", "./tmp.xml"])
+        # Añadir el campo <virtualport type='openvswitch'/> a la segunda interfaz
+        virtualport2 = etree.SubElement(second_interface, "virtualport")
+        virtualport2.set("type", "openvswitch")
+
+        # Insertar la segunda interfaz en el archivo XML
+        root.find("./devices").append(second_interface)
+
+    # Guardar los cambios en el XML
+    with open(path + ".xml", "wb") as fout:
+        fout.write(etree.tostring(tree, pretty_print=True, encoding="utf-8"))
 
 def configurateNet(vm):
 
@@ -78,7 +90,7 @@ def configurateNet(vm):
   fout = open("interfaces", 'w')
   if vm == "lb":
     fout.write("auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet static\n  address 10.1.1.1\n netmask 255.255.255.0\n gateway 10.1.1.1\nauto eth1\niface eth1 inet static\n  address 10.1.2.1\n netmask 255.255.255.0\n gateway 10.1.2.1")
-  else: 
+  else:
     fout.write("auto lo \niface lo inet loopback\n auto eth0\n iface eth0 inet static\n address " + network[vm][0] +"\nnetmask 255.255.255.0 \n gateway " + network[vm][1] + "\n")
   fout.close()
   call(["sudo", "virt-copy-in", "-a", vm + ".qcow2", "interfaces", "/etc/network"])
@@ -88,7 +100,7 @@ def configurateNet(vm):
     call("sudo virt-edit -a lb.qcow2 /etc/sysctl.conf -e 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/'", shell=True)
 
 
-class VM: 
+class VM:
   def __init__(self, name):
     self.name = name
     log.debug('init VM ' + self.name)
@@ -104,7 +116,7 @@ class VM:
     call(["sudo", "virsh", "define", self.name +".xml"])
     configurateNet(vm)
     # for i in interfaces:
-    #  log.debug("  if: addr=" + i["addr"] + ", mask=" + i["mask"]) 
+    #  log.debug("  if: addr=" + i["addr"] + ", mask=" + i["mask"])
 
   def start_vm (self):
     log.debug("start_vm " + self.name)
@@ -133,10 +145,10 @@ class NET:
 
   def create_net(self):
       log.debug('create_net ' + self.name)
-      call(["sudo", "brctl", "addbr", self.name])
+      call(["sudo", "ovs-vsctl", "add-br", self.name])
       call(["sudo", "ifconfig", self.name, "up"])
 
   def destroy_net(self):
       log.debug('destroy_net ' + self.name)
       call(["sudo", "ifconfig", self.name, "down"])
-      call(["sudo", "brctl", "delbr", self.name])
+      call(["sudo", "ovs-vsctl", "del-br", self.name])

@@ -158,7 +158,7 @@ if len(arguments) >= 3:
 # pause()
 
 # ifs = []
-# ifs.append( { "addr": "10.11.12.10", "mask": "255.255.255.0" } )
+# ifs.tt( { "addr": "10.11.12.10", "mask": "255.255.255.0" } )
 # ifs.append( { "addr": "10.11.13.10", "mask": "255.255.255.0" } )
 # s1.create_vm('cdps-vm.qcow2', ifs )
 # pause()
