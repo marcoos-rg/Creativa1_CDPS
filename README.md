@@ -20,12 +20,11 @@ El proyecto permite gestionar un entorno de redes y máquinas virtuales con los 
 | Comando                          | Descripción                                                                                   |
 |----------------------------------|-----------------------------------------------------------------------------------------------|
 | `create <num_servers>`           | Crea la red y el número especificado de servidores.                                           |
-| `start [all OR <server_name>]`      | Arranca todas las máquinas virtuales o una específica.                                        |
-| `stop [all OR <server_name>]`       | Detiene todas las máquinas virtuales o una específica.                                        |
+| `start (<server_name>)`      | Arranca todas las máquinas virtuales o una específica.                                        |
+| `stop (<server_name>)`       | Detiene todas las máquinas virtuales o una específica.                                        |
 | `destroy`                        | Elimina todas las máquinas y redes configuradas.                                              |
-| `state`                          | Muestra el estado actual de todas las máquinas virtuales (basado en `virsh domstate`).        |
-| `info [<server_name>]`           | Muestra información detallada de una máquina virtual específica o de todas (basado en `virsh dominfo`). |
-| `stats [<server_name>]`          | Muestra estadísticas de uso de CPU de una máquina virtual específica o de todas (basado en `virsh cpu-stats`). |
+| `monitor (<server_name>)`                          | Muestra el estado actual de todas las máquinas virtuales (basado en `virsh domstate`).        |
+| `info (<server_name>)`           | Muestra información detallada de una máquina virtual específica o de todas (basado en `virsh dominfo`). |
 | `help`                           | Muestra la lista de comandos disponibles y su funcionalidad.                                  |
 
 ---
