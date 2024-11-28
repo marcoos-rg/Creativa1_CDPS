@@ -1,6 +1,6 @@
 # Creativa 1
 
-**Creativa 1** es un proyecto desarrollado como parte de la asignatura **CDPS** (*Composición de Despliegues y Servicios*) impartida en la **Universidad Politécnica de Madrid (UPM)**. Este proyecto simula un entorno de máquinas virtuales conectadas a redes virtuales utilizando herramientas como **libvirt** y **Open vSwitch**, gestionadas a través de un conjunto de comandos personalizados.
+**Creativa 1** es un proyecto desarrollado como parte de la asignatura **CDPS** (*Centros de Datos y Provision de Servicios*) impartida en la **Universidad Politécnica de Madrid (UPM)**. Este proyecto simula un entorno de máquinas virtuales conectadas a redes virtuales utilizando herramientas como **libvirt** y **Open vSwitch**, gestionadas a través de un conjunto de comandos personalizados.
 
 ---
 
