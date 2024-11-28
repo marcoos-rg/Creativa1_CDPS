@@ -53,8 +53,8 @@ El proyecto permite gestionar un entorno de redes y máquinas virtuales con los 
 
 ### 1. **Clonar el Repositorio**:
    ```bash
-   git clone https://github.com/tu_usuario/creativa1.git
-   cd creativa1
+   git clone https://github.com/marcoos-rg/Creativa1_CDPS.git
+   cd Creativa1_CDPS
   ```
 ### 2. **Editar el Archivo `manage-p2.json`:**
 
